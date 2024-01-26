@@ -1,0 +1,210 @@
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        Store store = new Store();
+        store.Game();
+    }
+}
+
+class Store
+{ 
+    Seller seller = new Seller();
+    Player player = new Player(150);
+
+    public void Game()
+    {
+        const string CommandShowAllProducts = "1";
+        const string CommandBuyProducts = "2";
+        const string CommandShowAllProductsPlayer = "3";
+        const string CommandExit = "4";
+
+        bool isPlaying = true;
+
+        seller.CreateProducts();
+
+        while (isPlaying)
+        {
+            Console.WriteLine("Добпро пожаловать в магазин!");
+            seller.ShowSellerMoney();
+            Console.WriteLine("У меня есть список товаров которые ты можешь приобрести.");
+            Console.WriteLine($"Выберите действие: ");
+            Console.WriteLine($"{CommandShowAllProducts} - Показать список товаров у продавца.");
+            Console.WriteLine($"{CommandBuyProducts} - Купить товар.");
+            Console.WriteLine($"{CommandShowAllProductsPlayer} - Показать список товаров у игрока.");
+            Console.WriteLine($"{CommandExit} - Выйти из магазина.");
+            player.ShowMoneyPlayer();
+            string userInput = Console.ReadLine();
+
+            switch (userInput)
+            {
+                case CommandShowAllProducts:
+                    seller.ShowAllProduct();
+                    break;
+
+                case CommandBuyProducts:
+                    player.BuyProduct(seller);
+                    break;
+
+                case CommandShowAllProductsPlayer:
+                    player.ShowAllProductsPlayer();
+                    break;
+
+                case CommandExit:
+                    isPlaying = false;
+                    break;
+
+                default:
+                    Console.WriteLine("Такого действия нет.");
+                    break;
+            }
+
+            Console.WriteLine("Нажмите любую кнопку для продолжения.");
+            Console.ReadKey();
+            Console.Clear();
+        }
+    }
+}
+
+class Seller
+{
+    private int _moneySeller = 0;
+    private List<Product> _products = new List<Product>();
+
+    public void CreateProducts()
+    {
+        _products.Clear();
+
+        string[] nameProducts = { "Мечь", "Броня", "Перчатки", "Ботинки", "Штаны", "Шляпа"};
+        int[] pricesProducts = { 85, 100, 25, 25, 50, 20 };
+
+        for (int i = 0; i < nameProducts.Length; i++)
+        {
+            _products.Add(new Product(nameProducts[i], pricesProducts[i]));
+        }
+    }
+
+    public void ShowAllProduct()
+    {
+        Console.WriteLine("\nСписок всех товаров: ");
+
+        for (int i = 0; i < _products.Count; i++)
+        {
+            Console.Write(i + 1 + " - ");
+            _products[i].ShowInfoProduct();
+        }
+
+    }
+
+    public Product SellProduct(string productName)
+    {
+        string productNameLower = productName.ToLower();
+
+        for (int i = 0; i < _products.Count; i++)
+        {
+            if(_products[i].Name.ToLower() == productNameLower)
+            {
+                Product productToSell = _products[i];
+                _products.RemoveAt(i);
+                _moneySeller += productToSell.Price;
+
+                return productToSell;
+            }
+        }
+
+        return null;
+    }
+
+    public void ShowSellerMoney()
+    {
+        Console.WriteLine($"Баланс магазина: {_moneySeller} ед. золота.");
+    }
+}
+
+class Player 
+{
+    private int _money;
+    private List<Product> _productsPlayer;
+
+    public Player (int money)
+    {
+        _money = money;
+        _productsPlayer = new List<Product>();
+    }
+
+    private bool TryPayForProduct(Product product)
+    {
+        bool productPurchased = true;
+        bool productNotPurchased = false;
+
+        if (CheckSolvency(product))
+        {
+            _money -= product.Price;
+            _productsPlayer.Add(product);
+            return productPurchased;
+        }
+
+        return productNotPurchased;
+    }
+
+    private bool CheckSolvency (Product product)
+    {
+        return _money >= product.Price;
+    }
+
+    public void ShowAllProductsPlayer()
+    {
+        if (_productsPlayer.Count > 0)
+        {
+            foreach (var product in _productsPlayer)
+            {
+                product.ShowInfoProduct();
+            }
+        }
+        else
+        {
+            Console.WriteLine("Вы еще ничего не приобрели. Посмотрите товары у продавца.");
+        }
+    }
+
+    public void BuyProduct(Seller seller)
+    {
+        seller.ShowAllProduct();
+
+        Console.WriteLine("Введите название товара, который хотите приобрести: ");
+        string productName = Console.ReadLine();
+
+        Product productToBuy = seller.SellProduct(productName);
+
+        if (productToBuy != null && TryPayForProduct(productToBuy))
+        {
+            Console.WriteLine($"Вы купили: {productName}");
+        }
+        else
+        {
+            Console.WriteLine("Не удалось купить товар.");
+        }
+    }
+
+    public void ShowMoneyPlayer()
+    {
+        Console.WriteLine($"У Вас в кошельке: {_money} ед. золота.");
+    }
+}
+
+class Product
+{
+    public Product(string name, int price)
+    {
+        Name = name;
+        Price = price;
+    }
+
+    public string Name { get; private set; }
+    public int Price { get; private set; }
+
+    public void ShowInfoProduct()
+    {
+        Console.WriteLine($"{Name} по цене {Price} ед. золота.");
+    }
+}
