@@ -20,42 +20,34 @@ class Store
         _player = player;
     }
 
-    private void ShowProductSeller()
+    private bool Trade()
     {
         _seller.ShowItems();
-    }
-
-    private void ShowProductPlayer()
-    {
-        _player.ShowItems();
-    }
-
-    private bool BuyProduct()
-    {
-        ShowProductSeller();
 
         Console.WriteLine("Введите название товара, который хотите приобрести: ");
         string productName = Console.ReadLine();
 
-        Product productToBuy = _seller.FindProduct(productName);
+        Product productToBuy;
 
-        if (productToBuy == null)
+        if (_seller.FindProduct(productName, out productToBuy))
         {
-            return false;
+            if (_player.CanBuy(productToBuy.Price))
+            {
+                _player.PayForProduct(productToBuy);
+                _seller.SellProduct(productToBuy);
+                Console.WriteLine($"Вы приобрели товар - {productToBuy.Name}");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine("Не удалось купить товар, недостаточно средств.");
+                return false;
+            }
         }
 
-        if (_player.CanBuy(productToBuy))
-        {
-            _player.PayForProduct(productToBuy);
-            _seller.SellProduct(productToBuy);
-            Console.WriteLine($"Вы приобрели товар - {productToBuy.Name}");
-            return true;
-        }
-        else
-        {
-            Console.WriteLine("Не удалось купить товар, недостаточно средств.");
-            return false;
-        }
+        Console.WriteLine("Товар не найден!");
+        return false;
+
     }
 
     public void ShowMenu()
@@ -84,15 +76,15 @@ class Store
             switch (userInput)
             {
                 case CommandShowAllProducts:
-                    ShowProductSeller();
+                    _seller.ShowItems();
                     break;
 
                 case CommandBuyProducts:
-                    BuyProduct();
+                    Trade();
                     break;
 
                 case CommandShowAllProductsPlayer:
-                    ShowProductPlayer();
+                    _player.ShowItems();
                     break;
 
                 case CommandExit:
@@ -113,27 +105,27 @@ class Store
 
 public abstract class MarketAgent
 {
-    protected int money;
-    protected List<Product> items = new List<Product>();
+    protected int Money;
+    protected List<Product> Items = new List<Product>();
 
     public MarketAgent (int initialMoney)
     {
-        money = initialMoney;
+        Money = initialMoney;
     }
 
     public void ShowItems()
     {
         Console.WriteLine("Список товаров: ");
 
-        foreach (var item in items)
+        foreach (var item in Items)
         {
-            item.ShowInfoProduct();
+            item.ShowInfo();
         }
     }
 
     public void ShowMoney()
     {
-        Console.WriteLine($"Баланс средств: {money} ед. золота.");
+        Console.WriteLine($"Баланс средств: {Money} ед. золота.");
     }
 }
 
@@ -144,38 +136,38 @@ public class Seller : MarketAgent
         CreateProducts();
     }
 
-    public Product FindProduct(string productName)
+    public bool FindProduct(string productName, out Product product)
     {
-        string productNameLower = productName.ToLower();
-
-        for (int i = 0; i < items.Count; i++)
+        foreach (Product item in Items)
         {
-            if (items[i].Name.ToLower() == productNameLower)
+            if(item.Name.Equals(productName, StringComparison.OrdinalIgnoreCase))
             {
-                return items[i];
+                product = item;
+                return true;
             }
         }
 
+        product = null;
         Console.WriteLine("Данного товара нет в магазине");
-        return null;
+        return false;
     }
 
     public void SellProduct(Product product)
     {
-        items.Remove(product);
-        money += product.Price;
+        Money += product.Price;
+        Items.Remove(product);
     }
     
     private void CreateProducts()
     {
-        items.Clear();
+        Items.Clear();
 
         string[] nameProducts = { "Меч", "Броня", "Перчатки", "Ботинки", "Штаны", "Шляпа" };
         int[] pricesProducts = { 85, 100, 25, 25, 50, 20 };
 
         for (int i = 0; i < nameProducts.Length; i++)
         {
-            items.Add(new Product(nameProducts[i], pricesProducts[i]));
+            Items.Add(new Product(nameProducts[i], pricesProducts[i]));
         }
     }
 }
@@ -186,13 +178,13 @@ public class Player : MarketAgent
 
     public void PayForProduct(Product product)
     {
-        money -= product.Price;
-        items.Add(product);
+        Money -= product.Price;
+        Items.Add(product);
     }
 
-    public bool CanBuy(Product product)
+    public bool CanBuy(int productPrice)
     {
-        return money >= product.Price;
+        return Money >= productPrice;
     }
 }
 
@@ -207,7 +199,7 @@ public class Product
     public string Name { get; private set; }
     public int Price { get; private set; }
 
-    public void ShowInfoProduct()
+    public void ShowInfo()
     {
         Console.WriteLine($"{Name} по цене {Price} ед. золота.");
     }
