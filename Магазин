@@ -5,7 +5,7 @@ internal class Program
         Seller seller = new Seller();
         Player player = new Player(200);
         Store store = new Store(seller, player);
-        store.GameLoop();
+        store.ShowMenu();
     }
 }
 
@@ -16,21 +16,21 @@ class Store
 
     public Store(Seller seller, Player player)
     {
-        this._seller = seller;
-        this._player = player;
+        _seller = seller;
+        _player = player;
     }
 
-    public void ShowProductSeller()
+    private void ShowProductSeller()
     {
         _seller.ShowItems();
     }
 
-    public void ShowProductPlayer()
+    private void ShowProductPlayer()
     {
         _player.ShowItems();
     }
 
-    public bool BuyProduct()
+    private bool BuyProduct()
     {
         ShowProductSeller();
 
@@ -58,7 +58,7 @@ class Store
         }
     }
 
-    public void GameLoop()
+    public void ShowMenu()
     {
         const string CommandShowAllProducts = "1";
         const string CommandBuyProducts = "2";
@@ -77,6 +77,7 @@ class Store
             Console.WriteLine($"{CommandBuyProducts} - Купить товар.");
             Console.WriteLine($"{CommandShowAllProductsPlayer} - Показать список товаров у игрока.");
             Console.WriteLine($"{CommandExit} - Выйти из магазина.");
+            Console.Write($"Игрок - ");
             _player.ShowMoney();
             string userInput = Console.ReadLine();
 
@@ -143,19 +144,6 @@ public class Seller : MarketAgent
         CreateProducts();
     }
 
-    public void CreateProducts()
-    {
-        items.Clear();
-
-        string[] nameProducts = { "Меч", "Броня", "Перчатки", "Ботинки", "Штаны", "Шляпа" };
-        int[] pricesProducts = { 85, 100, 25, 25, 50, 20 };
-
-        for (int i = 0; i < nameProducts.Length; i++)
-        {
-            items.Add(new Product(nameProducts[i], pricesProducts[i]));
-        }
-    }
-
     public Product FindProduct(string productName)
     {
         string productNameLower = productName.ToLower();
@@ -176,7 +164,20 @@ public class Seller : MarketAgent
     {
         items.Remove(product);
         money += product.Price;
-    } 
+    }
+    
+    private void CreateProducts()
+    {
+        items.Clear();
+
+        string[] nameProducts = { "Меч", "Броня", "Перчатки", "Ботинки", "Штаны", "Шляпа" };
+        int[] pricesProducts = { 85, 100, 25, 25, 50, 20 };
+
+        for (int i = 0; i < nameProducts.Length; i++)
+        {
+            items.Add(new Product(nameProducts[i], pricesProducts[i]));
+        }
+    }
 }
 
 public class Player : MarketAgent
