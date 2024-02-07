@@ -20,36 +20,6 @@ class Store
         _player = player;
     }
 
-    private bool Trade()
-    {
-        _seller.ShowItems();
-
-        Console.WriteLine("Введите название товара, который хотите приобрести: ");
-        string productName = Console.ReadLine();
-
-        Product productToBuy;
-
-        if (_seller.FindProduct(productName, out productToBuy))
-        {
-            if (_player.CanBuy(productToBuy.Price))
-            {
-                _player.PayForProduct(productToBuy);
-                _seller.SellProduct(productToBuy);
-                Console.WriteLine($"Вы приобрели товар - {productToBuy.Name}");
-                return true;
-            }
-            else
-            {
-                Console.WriteLine("Не удалось купить товар, недостаточно средств.");
-                return false;
-            }
-        }
-
-        Console.WriteLine("Товар не найден!");
-        return false;
-
-    }
-
     public void ShowMenu()
     {
         const string CommandShowAllProducts = "1";
@@ -100,6 +70,35 @@ class Store
             Console.ReadKey();
             Console.Clear();
         }
+    }
+
+    private bool Trade()
+    {
+        _seller.ShowItems();
+
+        Console.WriteLine("Введите название товара, который хотите приобрести: ");
+        string productName = Console.ReadLine();
+
+        Product productToBuy;
+
+        if (_seller.FindProduct(productName, out productToBuy))
+        {
+            if (_player.CanBuy(productToBuy.Price))
+            {
+                _player.PayForProduct(productToBuy);
+                _seller.SellProduct(productToBuy);
+                Console.WriteLine($"Вы приобрели товар - {productToBuy.Name}");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine("Не удалось купить товар, недостаточно средств.");
+                return false;
+            }
+        }
+
+        Console.WriteLine("Товар не найден!");
+        return false;
     }
 }
 
